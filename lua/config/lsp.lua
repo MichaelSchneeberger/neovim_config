@@ -1,0 +1,99 @@
+-- https://github.com/mplusp/minimal-nvim-0.11-lsp-setup/blob/main/lsp/lua_ls.lua
+
+-- lsp
+--------------------------------------------------------------------------------
+-- See https://gpanders.com/blog/whats-new-in-neovim-0-11/ for a nice overview
+-- of how the lsp setup works in neovim 0.11+.
+
+ vim.lsp.config('lua_ls', {
+   on_init = function(client)
+     if client.workspace_folders then
+       local path = client.workspace_folders[1].name
+       if
+         path ~= vim.fn.stdpath('config')
+         and (vim.uv.fs_stat(path .. '/.luarc.json') or vim.uv.fs_stat(path .. '/.luarc.jsonc'))
+       then
+         return
+       end
+     end
+
+     client.config.settings.Lua = vim.tbl_deep_extend('force', client.config.settings.Lua, {
+       runtime = {
+         -- Tell the language server which version of Lua you're using (most
+         -- likely LuaJIT in the case of Neovim)
+         version = 'LuaJIT',
+         -- Tell the language server how to find Lua modules same way as Neovim
+         -- (see `:h lua-module-load`)
+         path = {
+           'lua/?.lua',
+           'lua/?/init.lua',
+         },
+       },
+       -- Make the server aware of Neovim runtime files
+       workspace = {
+         checkThirdParty = false,
+         library = {
+           vim.env.VIMRUNTIME
+           -- Depending on the usage, you might want to add additional paths
+           -- here.
+           -- '${3rd}/luv/library'
+           -- '${3rd}/busted/library'
+         }
+         -- Or pull in all of 'runtimepath'.
+         -- NOTE: this is a lot slower and will cause issues when working on
+         -- your own configuration.
+         -- See https://github.com/neovim/nvim-lspconfig/issues/3189
+         -- library = {
+         --   vim.api.nvim_get_runtime_file('', true),
+         -- }
+       }
+     })
+   end,
+   settings = {
+     Lua = {}
+   }
+ })
+
+-- list of LSP servers you want enabled
+local servers = {
+  "lua_ls",
+  "dummylsp",
+  "pyright",
+  "ruff_custom",
+  "pylsp_custom",
+  "clangd",
+  "rust_analyzer",
+  "metals",
+}
+
+for _, server in ipairs(servers) do
+  vim.lsp.enable(server)
+end
+
+vim.api.nvim_create_autocmd('LspAttach', {
+  callback = function(ev)
+    local client = vim.lsp.get_client_by_id(ev.data.client_id)
+    if client and client:supports_method(vim.lsp.protocol.Methods.textDocument_completion) then
+      vim.opt.completeopt = { 'menu', 'menuone', 'noinsert', 'fuzzy', 'popup' }
+      vim.lsp.completion.enable(true, client.id, ev.buf, { autotrigger = true })
+      vim.keymap.set('i', '<C-Space>', function()
+        vim.lsp.completion.get()
+      end)
+      vim.keymap.set('n', '<leader>th', function()
+        vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = ev.buf })
+      end, { desc = 'LSP: [T]oggle Inlay [H]ints' })
+    end
+  end,
+})
+
+-- Diagnostics
+vim.diagnostic.config({
+  -- Use the default configuration
+  -- virtual_lines = true
+
+  -- Alternatively, customize specific options
+  virtual_lines = {
+    -- Only show virtual line diagnostics for the current cursor line
+    current_line = true,
+  },
+})
