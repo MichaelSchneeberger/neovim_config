@@ -40,6 +40,18 @@ return {
           require('harpoon'):list():select(4)
         end,
       },
+      {
+        '<C-n>',
+        function()
+          require('harpoon'):list():select(5)
+        end,
+      },
+      {
+        '<C-m>',
+        function()
+          require('harpoon'):list():select(6)
+        end,
+      },
     },
   },
 }

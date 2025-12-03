@@ -30,6 +30,6 @@
 return {
   cmd = { '/home/mike/.venvs/default/bin/ruff', 'server' },
   filetypes = { 'python' },
-  root_markers = { 'pyproject.toml', 'ruff.toml', '.ruff.toml', '.git' },
+  root_markers = { 'pyproject.toml', 'ruff.toml', '.git' },
   settings = {},
 }

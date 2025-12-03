@@ -5,6 +5,21 @@
 -- See https://gpanders.com/blog/whats-new-in-neovim-0-11/ for a nice overview
 -- of how the lsp setup works in neovim 0.11+.
 
+vim.api.nvim_create_autocmd("LspAttach", {
+  group = vim.api.nvim_create_augroup('lsp_attach_disable_ruff_hover', { clear = true }),
+  callback = function(args)
+    local client = vim.lsp.get_client_by_id(args.data.client_id)
+    if client == nil then
+      return
+    end
+    if client.name == 'ruff' then
+      -- Disable hover in favor of Pyright
+      client.server_capabilities.hoverProvider = false
+    end
+  end,
+  desc = 'LSP: Disable hover capability from Ruff',
+})
+
  vim.lsp.config('lua_ls', {
    on_init = function(client)
      if client.workspace_folders then
@@ -58,9 +73,10 @@
 local servers = {
   "lua_ls",
   "dummylsp",
-  "pyright",
+  "basedpyright_custom",
+  -- "pyright",
   "ruff_custom",
-  "pylsp_custom",
+  -- "pylsp_custom",
   "clangd",
   "rust_analyzer",
   "metals",

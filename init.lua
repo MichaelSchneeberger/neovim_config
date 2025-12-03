@@ -11,6 +11,7 @@ vim.o.relativenumber = true
 vim.o.mouse = 'a'
 
 -- Don't show the mode, since it's already in the status line
+vim.o.laststatus = 3
 vim.o.showmode = false
 
 -- Sync clipboard between OS and Neovim
